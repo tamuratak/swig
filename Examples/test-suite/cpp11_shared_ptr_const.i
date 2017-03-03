@@ -9,7 +9,7 @@ class Foo
 {
 public:
   Foo(int i) : m(i) {}
-  int get_m() { return m;}
+  int get_m() const { return m;}
   int m;
 };
 
@@ -33,6 +33,22 @@ std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) {
   return result;
 }
 
+int from_const_foo_vec(const std::vector<std::shared_ptr<const Foo> >& v) {
+  if (v.size() > 0) {
+    return (*v[0]).get_m();
+  } else {
+    return -1;
+  }
+}
+
+int from_foo_vec(const std::vector<std::shared_ptr<Foo> >& v) {
+  if (v.size() > 0) {
+    return (*v[0]).get_m();
+  } else {
+    return -1;
+  }
+}
+
 %}
 
 %include <std_shared_ptr.i>
@@ -47,6 +63,8 @@ std::shared_ptr<Foo> foo(Foo v);
 std::shared_ptr<const Foo> const_foo(Foo v);
 std::vector<std::shared_ptr<Foo> > foo_vec(Foo v) const;
 std::vector<std::shared_ptr<const Foo> > const_foo_vec(Foo v) const;
+int from_const_foo_vec(const std::vector<std::shared_ptr<const Foo> >& v);
+int from_foo_vec(const std::vector<std::shared_ptr<Foo> >& v);
 
 class Foo
 {
