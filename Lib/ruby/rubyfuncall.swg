@@ -10,15 +10,15 @@ extern "C" VALUE swig_rb_funcall_caller(VALUE);
 
 namespace swig {
 
-  class swig_rb_funcall_tag {
+  class ruby_funcaller_tag {
   public:
-    swig_rb_funcall_tag(int i) : state(i) {}
+    ruby_funcaller_tag(int i) : state(i) {}
     int state;
   };
 
 
-  struct Funcall {
-    Funcall(VALUE obj, ID m, std::vector<VALUE> & v) : recv(obj), mid(m), args(v) {}
+  struct ruby_funcaller {
+    ruby_funcaller(VALUE obj, ID m, std::vector<VALUE> & v) : recv(obj), mid(m), args(v) {}
 
     VALUE call_impl() { 
       VALUE a = rb_ary_new_from_values(args.size(), args.data());
@@ -27,9 +27,9 @@ namespace swig {
 
     VALUE call() {
       int state = 0;
-      VALUE res = rb_protect(funcall_caller, (VALUE) this, &state);
+      VALUE res = rb_protect(swig_rb_funcall_caller, (VALUE) this, &state);
       if (state) {
-        throw swig_rb_funcall_tag(state);
+        throw ruby_funcaller_tag(state);
       }
       return res;
     }
@@ -49,7 +49,7 @@ namespace swig {
     ID mid;
     std::vector<VALUE> args;
   };
-  template<> void Funcall::as<void>(VALUE res) {}
+  template<> void ruby_funcaller::as<void>(VALUE res) {}
 
   VALUE swig_rb_funcall(VALUE recv, ID mid, int n, ...) {
     std::vector<VALUE> v(n);
@@ -59,13 +59,13 @@ namespace swig {
       v[i] = va_arg(args, VALUE);
     }
     va_end(args);
-    Funcall f(recv, mid, v);
+    ruby_funcaller f(recv, mid, v);
     return f.call();
   }
 };
 
 extern "C" VALUE swug_rb_funcall_caller(VALUE proc) {
-  Funcall *f = (Funcall*) proc;
+  swig::ruby_funcaller *f = (swig::ruby_funcaller*) proc;
   return f->call_impl();
 }
 
