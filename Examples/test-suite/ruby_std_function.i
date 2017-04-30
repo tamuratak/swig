@@ -1,11 +1,16 @@
 %module ruby_std_function
 
 %include <rubygeneralfunctor.swg>
+%include <std_vector.i>
+%template() std::vector<int>;
 
-%template(FunctorIntInt) GeneralFunctor<int, int>;
-%template(FunctorVoidInt) GeneralFunctor<void, int>;
+%ruby_general_functor(FunctorIntInt, int, int);
+%ruby_general_functor(FunctorVoidInt, void, int);
+%ruby_general_functor(FunctorIntVec, int, std::vector<int>);
+%ruby_general_functor_arg_void(FunctorIntVoid, int);
 
-%template(FunctorIntDouble) GeneralFunctor<int, double>;
+%std_function(FIntInt, int, int);
+%std_function(FIntInt, int, int, int);
 
 %{
 

@@ -18,13 +18,14 @@ class std::function<R(__VA_ARGS__)> {
 public:
   typedef R result_type;
   R operator()(__VA_ARGS__);
+  R(*)(__VA_ARGS__) target();
   %call_traits_frag(R, __VA_ARGS__);
     %extend{
-    std::function(VALUE obj) {
-      auto ret = new std::function<R(__VA_ARGS__)>();
-      *ret = GeneralFunctor< R , __VA_ARGS__ >(obj);
-      return ret;
-    }
+      std::function(VALUE obj) {
+        auto ret = new std::function<R(__VA_ARGS__)>();
+        *ret = SwigRubyGeneralFunctor< R , __VA_ARGS__ >(obj);
+        return ret;
+      }
     }
 };
 %template(Name) std::function<R(__VA_ARGS__)>;
@@ -36,11 +37,12 @@ class std::function<R()> {
 public:
   typedef R result_type;
   R operator()();
+  R(*)(__VA_ARGS__) target();
   %call_traits_frag(R);
   %extend{
     std::function(VALUE obj) {
       auto ret = new std::function<R()>();
-      *ret = GeneralFunctor< R >(obj);
+      *ret = SwigRubyGeneralFunctor< R >(obj);
       return ret;
     }
   }
