@@ -4,28 +4,44 @@
 %{
 #include <functional>
 #include <stdexcept>
+#include <iostream>
 %}
 
 %fragment("RubyGeneralFunctor", "header", fragment="StdTraits", fragment="RubyFuncall")
 {
 
 template<class R, class...Args>
-  struct SwigRubyGeneralFunctor : swig::GC_VALUE {
+  struct SwigRubyGeneralFunctorProc : swig::GC_VALUE {
+
   typedef std::function<R(Args...)> function_type;
-  
-  SwigRubyGeneralFunctor(VALUE obj = Qnil) : GC_VALUE(obj), _func(nullptr) {}
-  SwigRubyGeneralFunctor(function_type f) : GC_VALUE(Qnil), _func(f) {}
+
+  SwigRubyGeneralFunctorProc(VALUE obj = Qnil) : GC_VALUE(obj) {}
 
   R operator()(const Args&... args) {
-    if (_func) {
-      return _func(args...);
-    } else {
-      VALUE res = swig::swig_rb_funcall(_obj, rb_intern("call"), sizeof...(Args), swig::from(args)...);
-      return swig::ruby_funcall::as<R>(res);
-    }
+    VALUE res = swig::swig_rb_funcall(_obj, rb_intern("call"), sizeof...(Args), swig::from(args)...);
+    return swig::ruby_funcall::as<R>(res);
   }
 
   function_type to_function() {
+    return *this;
+  }
+
+};
+
+template<class R, class...Args>
+  struct SwigRubyGeneralFunctor {
+
+  typedef std::function<R(Args...)> function_type;
+
+  SwigRubyGeneralFunctor(VALUE obj = Qnil) : _func(SwigRubyGeneralFunctorProc<R,Args...>(obj)) {}
+  SwigRubyGeneralFunctor(function_type f) : _func(f) {}
+  SwigRubyGeneralFunctor(R(*f)(Args...)) : _func(f) {}
+
+  R operator()(const Args&... args) {
+    return _func(args...);
+  }
+
+  function_type to_func() {
     return *this;
   }
 
@@ -51,8 +67,9 @@ public:
   typedef R result_type;
   SwigRubyGeneralFunctor(VALUE obj = Qnil);
   SwigRubyGeneralFunctor(const function_type& f);
+  SwigRubyGeneralFunctor(R(*f)(__VA_ARGS__));
   R operator()(__VA_ARGS__);
-  function_type to_function();
+  function_type to_func();
   %ruby_general_functor_trais_fragment(R, __VA_ARGS__);
 };
 %template(Name) SwigRubyGeneralFunctor<R, __VA_ARGS__>;
@@ -66,8 +83,9 @@ public:
   typedef R result_type;
   SwigRubyGeneralFunctor(VALUE obj = Qnil);
   SwigRubyGeneralFunctor(const function_type& f);
+  SwigRubyGeneralFunctor(R(*f)());
   R operator()();
-  function_type to_function();
+  function_type to_func();
   %ruby_general_functor_trais_fragment(R);
 };
 %template(Name) SwigRubyGeneralFunctor<R>;
