@@ -22,7 +22,7 @@ template<class R, class...Args>
     return swig::ruby_funcall::as<R>(res);
   }
 
-  function_type to_function() {
+  function_type to_func() {
     return *this;
   }
 
